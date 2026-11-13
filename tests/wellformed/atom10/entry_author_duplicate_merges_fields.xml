@@ -1,0 +1,13 @@
+<!--
+Description: duplicate author declarations are merged, so the list matches the single-value field
+Expect:      not bozo and entries[0]['authors'] == [{'name': 'Example editor', 'email': 'me@example.com'}] and entries[0]['author'] == 'Example editor (me@example.com)' and entries[0]['author_detail'] == {'name': 'Example editor', 'email': 'me@example.com'}
+-->
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <entry>
+    <dc:creator>Example editor (me@example.com)</dc:creator>
+    <author>
+      <name>Example editor</name>
+      <email>me@example.com</email>
+    </author>
+  </entry>
+</feed>

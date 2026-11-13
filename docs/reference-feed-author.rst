@@ -5,6 +5,10 @@
 
 The author of this feed.
 
+This is the final author declaration in :ref:`reference.feed.authors`, rendered
+with the same fallback rules used for entries: the name, then the email
+address, then the author's URL.
+
 
 .. rubric:: Comes from
 

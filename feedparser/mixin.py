@@ -36,12 +36,12 @@ from .html import _cp1252
 from .namespaces import _base, cc, dc, georss, itunes, mediarss, psc
 from .sanitizer import HTMLSanitizer, sanitize_html
 from .urls import _urljoin, make_safe_absolute_uri, resolve_relative_uris
-from .util import FeedParserDict
-
-email_pattern = re.compile(
-    r"(([a-zA-Z0-9_.+-]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)"
-    r"|(([a-zA-Z0-9-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(]?))"
-    r"(\?subject=\S+)?"
+from .util import (
+    FeedParserDict,
+    aggregate_authors,
+    clean_author_record,
+    render_author,
+    split_author_text,
 )
 
 
@@ -769,54 +769,136 @@ class XMLParserMixin(
 
     def _save_author(self, key, value, prefix="author"):
         context = self._get_context()
-        context.setdefault(prefix + "_detail", FeedParserDict())
-        context[prefix + "_detail"][key] = value
+        records = context.setdefault("authors", [FeedParserDict()])
+        if not records:
+            records.append(FeedParserDict())
+
+        if prefix == "author":
+            # Author fields belong to the declaration that is currently open;
+            # ``_start_author()`` has already appended an empty record for it.
+            records[-1][key] = value
+            return
+
+        # Publisher information is not collected into a list of its own, but it
+        # has always been mirrored into the author list, so keep doing that and
+        # let the shared aggregation rules derive the single-value fields.
+        record = context.setdefault(prefix + "_detail", FeedParserDict())
+        record[key] = value
+        records[-1][key] = value
         self._sync_author_detail()
-        context.setdefault("authors", [FeedParserDict()])
-        context["authors"][-1][key] = value
 
     def _save_contributor(self, key, value):
         context = self._get_context()
         context.setdefault("contributors", [FeedParserDict()])
         context["contributors"][-1][key] = value
 
-    def _sync_author_detail(self, key="author"):
+    def _sync_author_detail(self, key="author", raw_text=None):
+        """Aggregate the author list and derive the single-value field.
+
+        Every author declaration is recorded in the ``authors`` list. The
+        ``author_detail`` dictionary and the single-value ``author`` field are
+        both derived from that list so that they can never disagree:
+
+        * blank fields are dropped from every record,
+        * records that describe the same person are deduplicated, and
+        * the single value is rendered with the same fallback rules that are
+          used to describe an individual author.
+
+        The class of fields that ``author_detail`` may contain is unchanged;
+        only its values are recomputed from the aggregated author list.
+        """
+
         context = self._get_context()
-        detail = context.get("%ss" % key, [FeedParserDict()])[-1]
-        if detail:
-            name = detail.get("name")
-            email = detail.get("email")
-            if name and email:
-                context[key] = f"{name} ({email})"
-            elif name:
-                context[key] = name
-            elif email:
-                context[key] = email
-        else:
-            author, email = context.get(key), None
-            if not author:
+
+        if key != "author":
+            self._sync_publisher_detail(context, key, raw_text)
+            return
+
+        records = context.get("authors")
+        if records is None:
+            if not raw_text:
                 return
-            emailmatch = email_pattern.search(author)
-            if emailmatch:
-                email = emailmatch.group(0)
-                # probably a better way to do the following, but it passes
-                # all the tests
-                author = author.replace(email, "")
-                author = author.replace("()", "")
-                author = author.replace("<>", "")
-                author = author.replace("&lt;&gt;", "")
-                author = author.strip()
-                if author and (author[0] == "("):
-                    author = author[1:]
-                if author and (author[-1] == ")"):
-                    author = author[:-1]
-                author = author.strip()
-            if author or email:
-                context.setdefault("%s_detail" % key, detail)
-            if author:
-                detail["name"] = author
+            records = [FeedParserDict()]
+            context["authors"] = records
+        elif raw_text and records and not records[-1]:
+            # Free-form author text ("name (email)") is only a fallback for
+            # declarations that provided no structured fields.
+            name, email = split_author_text(raw_text)
+            if name:
+                records[-1]["name"] = name
+            if email:
+                records[-1]["email"] = email
+
+        for record in records:
+            clean_author_record(record)
+        records = [record for record in records if record]
+        if not records:
+            context.pop("authors", None)
+            context.pop("author_detail", None)
+            context.pop("author", None)
+            return
+
+        # The final declaration stays authoritative even when deduplication
+        # merges it into an earlier position.
+        last_record = records[-1]
+        context["authors"] = aggregate_authors(records)
+
+        detail = FeedParserDict(last_record)
+        if detail:
+            context["author_detail"] = detail
+        else:
+            context.pop("author_detail", None)
+
+        value = render_author(last_record)
+        if value is None:
+            context.pop("author", None)
+        else:
+            context["author"] = value
+
+    @staticmethod
+    def _sync_publisher_detail(context, key, raw_text=None):
+        """Derive publisher-style detail from free-form text.
+
+        The single-value publisher field keeps its historical behavior: it is
+        the text that was parsed from the element and is never re-rendered.
+        """
+
+        detail_key = "%s_detail" % key
+        detail = context.get(detail_key)
+
+        if detail is None:
+            text = raw_text or context.get(key)
+            if not text:
+                return
+            name, email = split_author_text(text)
+            detail = FeedParserDict()
+            if name:
+                detail["name"] = name
             if email:
                 detail["email"] = email
+        else:
+            clean_author_record(detail)
+
+        if detail:
+            context[detail_key] = detail
+        else:
+            context.pop(detail_key, None)
+
+    def _sync_contributor_detail(self):
+        """Drop blank fields and duplicate records from the contributor list."""
+
+        context = self._get_context()
+        contributors = context.get("contributors")
+        if not contributors:
+            return
+        for contributor in contributors:
+            clean_author_record(contributor)
+        contributors = [contributor for contributor in contributors if contributor]
+        contributors = aggregate_authors(contributors)
+        if contributors:
+            context["contributors"] = contributors
+        else:
+            context.pop("contributors", None)
 
     def _add_tag(self, term, scheme, label):
         context = self._get_context()

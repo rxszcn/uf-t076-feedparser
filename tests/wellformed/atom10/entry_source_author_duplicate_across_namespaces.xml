@@ -1,0 +1,14 @@
+<!--
+Description: source dc:creator and atom:author that agree produce one source author
+Expect:      not bozo and entries[0]['source']['authors'] == [{'name': 'Example editor'}] and entries[0]['source']['author'] == 'Example editor' and entries[0]['source']['author_detail'] == {'name': 'Example editor'}
+-->
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <entry>
+    <source xmlns:dc="http://purl.org/dc/elements/1.1/">
+      <dc:creator>Example editor</dc:creator>
+      <author>
+        <name>Example editor</name>
+      </author>
+    </source>
+  </entry>
+</feed>

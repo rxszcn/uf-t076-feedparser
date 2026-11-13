@@ -1,0 +1,9 @@
+<!--
+Description: an author element with no usable content contributes no author entry
+Expect:      not bozo and 'author' not in entries[0] and 'authors' not in entries[0] and 'author_detail' not in entries[0]
+-->
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <entry>
+    <author></author>
+  </entry>
+</feed>

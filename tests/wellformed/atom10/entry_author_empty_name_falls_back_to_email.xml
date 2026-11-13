@@ -1,0 +1,12 @@
+<!--
+Description: entry author with an empty name falls back to the email address in every view
+Expect:      not bozo and entries[0]['author'] == 'me@example.com' and entries[0]['authors'] == [{'email': 'me@example.com'}] and entries[0]['author_detail'] == {'email': 'me@example.com'} and 'name' not in entries[0]['authors'][0]
+-->
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <entry>
+    <author>
+      <name></name>
+      <email>me@example.com</email>
+    </author>
+  </entry>
+</feed>

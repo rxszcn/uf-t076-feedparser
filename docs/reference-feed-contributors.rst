@@ -3,6 +3,9 @@
 
 A list of contributors (secondary authors) to this feed.
 
+Blank fields are dropped, and declarations that describe the same contributor
+are merged using the same identity rules as :ref:`reference.entry.authors`.
+
 
 ``feed.contributors[i].name``
 ------------------------------------

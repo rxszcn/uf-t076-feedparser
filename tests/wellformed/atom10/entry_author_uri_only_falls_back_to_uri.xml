@@ -1,0 +1,11 @@
+<!--
+Description: an author with only a URI falls back to the URI in every view
+Expect:      not bozo and entries[0]['author'] == 'http://example.com/me' and entries[0]['authors'] == [{'href': 'http://example.com/me'}] and entries[0]['author_detail'] == {'href': 'http://example.com/me'}
+-->
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <entry>
+    <author>
+      <uri>http://example.com/me</uri>
+    </author>
+  </entry>
+</feed>

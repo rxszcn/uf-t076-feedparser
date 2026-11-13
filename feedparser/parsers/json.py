@@ -29,7 +29,12 @@ import json
 
 from ..datetimes import _parse_date
 from ..sanitizer import sanitize_html
-from ..util import FeedParserDict
+from ..util import (
+    FeedParserDict,
+    aggregate_authors,
+    clean_author_record,
+    render_author,
+)
 
 
 class JSONParser:
@@ -116,14 +121,35 @@ class JSONParser:
 
     @staticmethod
     def parse_author(parent, dest):
-        dest["author_detail"] = detail = FeedParserDict()
-        if "name" in parent:
-            dest["author"] = detail["name"] = parent["name"]
-        if "url" in parent:
-            if parent["url"].startswith("mailto:"):
-                detail["email"] = parent["url"][7:]
+        """Record a JSON Feed author using the shared author aggregation.
+
+        JSON Feed only allows a single author, but the aggregated output must
+        match the XML parsers: blank fields are dropped, the ``authors`` list
+        mirrors the identity, and the single-value ``author`` field uses the
+        same fallback order (name, then email, then URL).
+        """
+
+        record = FeedParserDict()
+        name = parent.get("name")
+        if isinstance(name, str):
+            record["name"] = name
+        url = parent.get("url")
+        if isinstance(url, str):
+            if url.startswith("mailto:"):
+                record["email"] = url[7:]
             else:
-                detail["href"] = parent["url"]
+                record["href"] = url
+
+        clean_author_record(record)
+        if not record:
+            return
+
+        records = aggregate_authors([record])
+        dest["authors"] = records
+        dest["author_detail"] = FeedParserDict(records[-1])
+        value = render_author(records[-1])
+        if value is not None:
+            dest["author"] = value
 
     @staticmethod
     def parse_attachment(attachment):

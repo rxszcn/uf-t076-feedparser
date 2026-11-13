@@ -146,9 +146,9 @@ class Namespace:
     _start_managingeditor = _start_author
 
     def _end_author(self):
-        self.pop("author")
+        value = self.pop("author")
         self.inauthor = 0
-        self._sync_author_detail()
+        self._sync_author_detail(raw_text=value)
 
     _end_managingeditor = _end_author
 
@@ -162,6 +162,7 @@ class Namespace:
     def _end_contributor(self):
         self.pop("contributor")
         self.incontributor = 0
+        self._sync_contributor_detail()
 
     def _start_name(self, attrs_d):
         self.push("name", 0)

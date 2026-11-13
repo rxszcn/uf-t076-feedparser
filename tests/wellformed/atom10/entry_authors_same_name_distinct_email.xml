@@ -1,0 +1,16 @@
+<!--
+Description: different authors that share only a name are kept separate
+Expect:      not bozo and entries[0]['authors'] == [{'name': 'Example editor', 'email': 'one@example.com'}, {'name': 'Example editor', 'email': 'two@example.com'}] and entries[0]['author'] == 'Example editor (two@example.com)'
+-->
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <entry>
+    <author>
+      <name>Example editor</name>
+      <email>one@example.com</email>
+    </author>
+    <author>
+      <name>Example editor</name>
+      <email>two@example.com</email>
+    </author>
+  </entry>
+</feed>

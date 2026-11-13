@@ -1,0 +1,11 @@
+<!--
+Description: feed-level dc:creator and atom:author that agree produce one author
+Expect:      not bozo and feed['authors'] == [{'name': 'Example editor'}] and feed['author'] == 'Example editor' and feed['author_detail'] == {'name': 'Example editor'}
+-->
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <dc:creator>Example editor</dc:creator>
+  <author>
+    <name>Example editor</name>
+  </author>
+  <entry></entry>
+</feed>

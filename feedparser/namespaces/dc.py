@@ -136,3 +136,4 @@ class Namespace:
     def _end_dc_contributor(self):
         self._end_name()
         self.incontributor = 0
+        self._sync_contributor_detail()

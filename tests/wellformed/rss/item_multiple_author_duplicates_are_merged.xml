@@ -1,0 +1,12 @@
+<!--
+Description: duplicate item author declarations are merged into one author
+Expect:      not bozo and entries[0]['authors'] == [{'name': 'Example editor', 'email': 'me@example.com'}] and entries[0]['author'] == 'Example editor (me@example.com)' and entries[0]['author_detail'] == {'name': 'Example editor', 'email': 'me@example.com'}
+-->
+<rss version="2.0">
+<channel>
+<item>
+<author>Example editor (me@example.com)</author>
+<author>Example editor (me@example.com)</author>
+</item>
+</channel>
+</rss>

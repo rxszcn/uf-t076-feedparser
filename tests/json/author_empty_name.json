@@ -1,0 +1,19 @@
+{
+    "__TEST__": "Description: JSON author with an empty name falls back to the email in every view Expect: not bozo and feed.author == 'me@example.com' and feed.authors == [{'email': 'me@example.com'}] and feed.author_detail == {'email': 'me@example.com'} and entries[0].author == 'you@example.com' and entries[0].authors == [{'email': 'you@example.com'}] and entries[0].author_detail == {'email': 'you@example.com'} -->",
+    "version": "https://jsonfeed.org/version/1.1",
+    "title": "Empty author name",
+    "author": {
+        "name": "",
+        "url": "mailto:me@example.com"
+    },
+    "items": [
+        {
+            "id": "1",
+            "content_text": "An item with a blank author name.",
+            "author": {
+                "name": "   ",
+                "url": "mailto:you@example.com"
+            }
+        }
+    ]
+}

@@ -1,0 +1,16 @@
+<!--
+Description: contributor declarations that duplicate one another are deduplicated like authors
+Expect:      not bozo and entries[0]['contributors'] == [{'name': 'Example contributor', 'email': 'me@example.com'}] and entries[0]['authors'] == [{'name': 'Example editor'}]
+-->
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <entry>
+    <dc:contributor>Example contributor</dc:contributor>
+    <contributor>
+      <name>Example contributor</name>
+      <email>me@example.com</email>
+    </contributor>
+    <author>
+      <name>Example editor</name>
+    </author>
+  </entry>
+</feed>

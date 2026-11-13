@@ -1,0 +1,12 @@
+<!--
+Description: the same author is declared by dc:creator and atom:author
+Expect:      not bozo and entries[0]['authors'] == [{'name': 'Example editor'}] and entries[0]['author'] == 'Example editor' and entries[0]['author_detail'] == {'name': 'Example editor'}
+-->
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <entry>
+    <dc:creator>Example editor</dc:creator>
+    <author>
+      <name>Example editor</name>
+    </author>
+  </entry>
+</feed>
